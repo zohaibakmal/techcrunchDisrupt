@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.12/crossfilter.min.js"></script>
+    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="dc.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+    <link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/dc/1.7.5/dc.min.css">
+
+
+
+
+    <style>
+        .heat-box {
+            stroke: #E6E6E6;
+            stroke-width: 2px;
+        }
+    </style>
+
+
+    <title></title>
+</head>
+<body>
+<div class="container">
+    <div class="col-md-6">
+        <video id="video1" width="420" controls>
+            <source src="http://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+            Your browser does not support HTML5 video.
+        </video>
+    </div>
+    <div id="test" class="col-md-6"></div>
+</div>
+
+
+<script type="text/javascript">
+
+    var chart = dc.heatMap("#test");
+    d3.csv("data.csv", function(error, data) {
+
+        var ndx    = crossfilter(data),
+                runDim = ndx.dimension(function(d) { return [+d.time, d.tag]; }),
+                runGroup = runDim.group().reduceCount(function(d) { return +d.tag; });
+
+        chart
+                .width(600)
+                .height(200)
+                .dimension(runDim)
+                .group(runGroup)
+                .keyAccessor(function(d) {
+                    return +d.key[0];
+                })
+                .valueAccessor(function(d) {
+                    return d.key[1];
+                })
+                .colorAccessor(function(d) {
+                    return +d.value;
+                })
+                .title(function(d) {
+                    return "Time:   " + d.key[0] + "\n" +
+                            "Tag:  " + d.key[1] + "\n" +
+                            "Number: " + d.value + " students";})
+                .linearColors(["#76ff03", "#f44336"])
+                chart.on('filtered.monitor', function(chart, filter) {
+                    console.log(chart);
+                    var player = $('#video1').get(0);
+                //    $('#gettime').click(function(){
+                        if(player){
+                            current_time=player.currentTime;
+                            $('#showtime').html(current_time+" seconds");
+                            player.currentTime=filter[0];
+                            if(player){
+                                current_time=player.currentTime;
+                                $('#showtime').html(current_time+" seconds");
+                                player.currentTime=filter[0];
+                            }
+                        }
+                  //  });
+                })
+                .calculateColorDomain();
+
+        chart.render();
+    });
+
+    function print_filter(filter){
+        var f=eval(filter);
+        if (typeof(f.length) != "undefined") {}else{}
+        if (typeof(f.top) != "undefined") {f=f.top(Infinity);}else{}
+        if (typeof(f.dimension) != "undefined") {f=f.dimension(function(d) { return "";}).top(Infinity);}else{}
+        console.log(filter+"("+f.length+") = "+JSON.stringify(f).replace("[","[\n\t").replace(/}\,/g,"},\n\t").replace("]","\n]"));
+    }
+
+</script>
+
+
+</body>
+</html>
+
